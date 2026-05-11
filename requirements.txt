@@ -1,3 +1,4 @@
 pyTelegramBotAPI
 aiohttp
 playwright
+playwright-stealth
