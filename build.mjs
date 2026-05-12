@@ -10,6 +10,10 @@ await build({
   packages: "external",
   sourcemap: false,
   tsconfig: "tsconfig.json",
+
+  loader: {
+    ".js": "ts"
+  }
 });
 
 console.log("✅ Build complete");
