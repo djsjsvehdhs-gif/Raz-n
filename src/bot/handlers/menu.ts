@@ -15,7 +15,7 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message, re
   }
 
   if (user.banned) {
-    await bot.sendMessage(id, "🚫 Tu cuenta ha sido suspendida. Contacta al administrador.");
+    await bot.sendMessage(id, "🚫 Tu cuenta ha sido baneado. Contacta al administrador.");
     return;
   }
 
@@ -26,7 +26,7 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message, re
 
   await bot.sendMessage(
     id,
-    `🏪 *NEEX STORE*\n─────────────────\n👋 ¡Hola de vuelta, ${name}!\n\n💰 *Saldo:* $${Number(user.balance).toFixed(2)} USD\n${rank.emoji} *Rango:* ${rank.name}\n\nElige una opción del menú 👇`,
+    `🏪 *RASHY STORE*\n─────────────────\n👋 ¡Hola de vuelta, ${name}!\n\n💰 *Saldo:* $${Number(user.balance).toFixed(2)} USD\n${rank.emoji} *Rango:* ${rank.name}\n\nElige una opción del menú 👇`,
     { parse_mode: "Markdown", reply_markup: mainMenu(isAdm) }
   );
 }
@@ -40,7 +40,7 @@ export async function sendMainMenu(bot: TelegramBot, chatId: number) {
 
   await bot.sendMessage(
     chatId,
-    `🏪 *NEEX STORE*\n─────────────────\n👋 ¡Hola de vuelta, ${name}!\n\n💰 *Saldo:* $${Number(user.balance).toFixed(2)} USD\n${rank.emoji} *Rango:* ${rank.name}\n\nElige una opción del menú 👇`,
+    `🏪 *RASHY STORE*\n─────────────────\n👋 ¡Hola de vuelta, ${name}!\n\n💰 *Saldo:* $${Number(user.balance).toFixed(2)} USD\n${rank.emoji} *Rango:* ${rank.name}\n\nElige una opción del menú 👇`,
     { parse_mode: "Markdown", reply_markup: mainMenu(isAdm) }
   );
 }
