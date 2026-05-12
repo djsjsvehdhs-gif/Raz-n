@@ -6,7 +6,9 @@
   },
   "dependencies": {
     "esbuild": "^0.25.0",
-    "firebase": "^11.7.3"
+    "firebase": "^11.10.0",
+    "install": "^0.13.0",
+    "npm": "^11.14.1"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
