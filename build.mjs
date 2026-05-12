@@ -7,10 +7,8 @@ await build({
   platform: "node",
   target: "node22",
   format: "esm",
-  packages: "external",
   sourcemap: false,
   tsconfig: "tsconfig.json",
-
   loader: {
     ".js": "ts"
   }
