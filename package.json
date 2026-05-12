@@ -5,7 +5,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "firebase": "^11.7.3"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
