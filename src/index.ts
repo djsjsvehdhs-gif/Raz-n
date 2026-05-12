@@ -1,5 +1,5 @@
 import { initializeDb } from "./bot/db.js";
-import { startBot } from "./bot/index";
+import { startBot } from "./bot/index.js";
 
 async function main() {
   console.log("🚀 Iniciando Neex Store Bot...");
