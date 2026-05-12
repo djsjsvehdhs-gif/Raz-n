@@ -6,12 +6,10 @@ await build({
   bundle: true,
   platform: "node",
   target: "node22",
-  format: "esm",
+  format: "cjs",
+  packages: "external",
   sourcemap: false,
   tsconfig: "tsconfig.json",
-  loader: {
-    ".js": "ts"
-  }
 });
 
 console.log("✅ Build complete");
