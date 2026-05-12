@@ -106,7 +106,7 @@ export function startBot() {
       if (text === "📋 Mis Compras") { await handlePurchases(bot, chatId); return; }
       if (text === "💳 Recargar Saldo") { await handleRecharge(bot, chatId); return; }
       if (text === "👥 Invitar Amigos") { await handleReferral(bot, chatId, botUsername); return; }
-      if (text === "⚙️ Menú ADM" && isAdmin(userId)) { await handleAdmMenu(bot, chatId); return; }
+      if (text === "⚙️ Menú Adm" && isAdmin(userId)) { await handleAdmMenu(bot, chatId); return; }
 
       // ── Estados ───────────────────────────────────────────────────────────
       switch (state.step) {
