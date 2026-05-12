@@ -1,13 +1,14 @@
 import { build } from "esbuild";
 
 await build({
-  entryPoints: ["src/index.ts"],
+  entryPoints: ["src/index.js"],
   bundle: true,
   platform: "node",
   target: "node22",
   format: "esm",
   outfile: "dist/index.mjs",
   sourcemap: true,
+  loader: { ".js": "tsx" },
   external: [
     "firebase-admin",
     "firebase-admin/*",
