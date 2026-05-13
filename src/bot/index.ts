@@ -34,6 +34,10 @@ export function startBot() {
 
   const bot = new TelegramBot(token, { polling: true });
 
+  bot.on("polling_error", (err) => {
+  console.error("Polling error:", err.message);
+});
+
   bot.getMe().then(me => {
     const botUsername = me.username ?? "bot";
     console.log(`✅ Bot iniciado: @${botUsername}`);

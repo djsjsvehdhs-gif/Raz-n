@@ -1,5 +1,10 @@
+"use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -7,6 +12,22 @@ var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 
 // src/bot/db.ts
 var db_exports = {};
@@ -55,8 +76,6 @@ __export(db_exports, {
   updateRechargePhoto: () => updateRechargePhoto,
   useKey: () => useKey
 });
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
 async function initializeDb() {
   const projectId = process.env["FIREBASE_PROJECT_ID"];
   const clientEmail = process.env["FIREBASE_CLIENT_EMAIL"];
@@ -66,10 +85,10 @@ async function initializeDb() {
       "Faltan variables de entorno de Firebase: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY"
     );
   }
-  if (getApps().length === 0) {
-    initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
+  if ((0, import_app.getApps)().length === 0) {
+    (0, import_app.initializeApp)({ credential: (0, import_app.cert)({ projectId, clientEmail, privateKey }) });
   }
-  firestoreDb = getFirestore();
+  firestoreDb = (0, import_firestore.getFirestore)();
   const doc = await firestoreDb.collection("bot").doc("data").get();
   if (doc.exists) {
     const loaded = doc.data();
@@ -351,10 +370,12 @@ function getDiscount(totalSpent) {
   if (totalSpent >= 50) return 5;
   return 0;
 }
-var defaultData, cache, firestoreDb;
+var import_app, import_firestore, defaultData, cache, firestoreDb;
 var init_db = __esm({
   "src/bot/db.ts"() {
     "use strict";
+    import_app = require("firebase-admin/app");
+    import_firestore = require("firebase-admin/firestore");
     defaultData = {
       users: [],
       products: [],
@@ -375,8 +396,8 @@ var init_db = __esm({
 init_db();
 
 // src/bot/index.ts
+var import_node_telegram_bot_api = __toESM(require("node-telegram-bot-api"));
 init_db();
-import TelegramBot from "node-telegram-bot-api";
 
 // src/bot/state.ts
 var userStates = /* @__PURE__ */ new Map();
@@ -440,7 +461,7 @@ async function handleStart(bot, msg, referrerId) {
     registerReferral2(id, referrerId);
   }
   if (user.banned) {
-    await bot.sendMessage(id, "\u{1F6AB} Tu cuenta ha sido suspendida. Contacta al administrador.");
+    await bot.sendMessage(id, "\u{1F6AB} Tu cuenta ha sido baneado. Contacta al administrador.");
     return;
   }
   clearState(id);
@@ -449,7 +470,7 @@ async function handleStart(bot, msg, referrerId) {
   const isAdm = id === ADMIN_ID;
   await bot.sendMessage(
     id,
-    `\u{1F3EA} *NEEX STORE*
+    `\u{1F3EA} *RASHY STORE*
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 \u{1F44B} \xA1Hola de vuelta, ${name}!
 
@@ -468,7 +489,7 @@ async function sendMainMenu(bot, chatId) {
   const isAdm = chatId === ADMIN_ID;
   await bot.sendMessage(
     chatId,
-    `\u{1F3EA} *NEEX STORE*
+    `\u{1F3EA} *RASHY STORE*
 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 \u{1F44B} \xA1Hola de vuelta, ${name}!
 
@@ -879,7 +900,9 @@ async function handleRechargeSent(bot, chatId) {
   if (state.step === "recharge_photo") {
     await bot.sendMessage(chatId, "\u{1F4F8} Por favor env\xEDa la foto del comprobante directamente en el chat.");
   } else {
-    await bot.sendMessage(chatId, "\u2705 Tu solicitud ya fue registrada. Espera la aprobaci\xF3n del administrador.");
+    await bot.sendMessage(chatId, "\u2705 Tu solicitud ya fue registrada. Espera la aprobaci\xF3n del administrador.", {
+      reply_markup: { inline_keyboard: [[{ text: "\u{1F3E0} Men\xFA Principal", callback_data: "main_menu" }]] }
+    });
   }
 }
 
@@ -1278,14 +1301,14 @@ function startBot() {
     console.error("\u274C TELEGRAM_BOT_TOKEN no configurado.");
     process.exit(1);
   }
-  const bot = new TelegramBot(token, { polling: true });
+  const bot = new import_node_telegram_bot_api.default(token, { polling: true });
   bot.getMe().then((me) => {
     const botUsername = me.username ?? "bot";
     console.log(`\u2705 Bot iniciado: @${botUsername}`);
     async function showDurationAdded(chatId, productId, label, price, keyCount) {
       await bot.sendMessage(
         chatId,
-        `\u2705 Duraci\xF3n agregada: *${label}* - $${price.toFixed(2)} USD - ${keyCount} keys.`,
+        `\u2705 Duraci\xF3n *${label}* - $${price.toFixed(2)} USD - ${keyCount} keys agregadas.`,
         {
           parse_mode: "Markdown",
           reply_markup: {
@@ -1304,292 +1327,306 @@ function startBot() {
       await handleStart(bot, msg, referrerId);
     });
     bot.onText(/\/cancelar/, async (msg) => {
-      if (msg.chat.type !== "private") return;
-      clearState(msg.from.id);
+      clearState(msg.chat.id);
       await sendMainMenu(bot, msg.chat.id);
-    });
-    bot.on("photo", async (msg) => {
-      if (msg.chat.type !== "private") return;
-      const userId = msg.from.id;
-      const state = getState(userId);
-      if (state.step === "recharge_photo") {
-        await handleRechargePhoto(bot, msg);
-      }
-    });
-    bot.on("video", async (msg) => {
-      if (msg.chat.type !== "private") return;
-      const userId = msg.from.id;
-      const state = getState(userId);
-      if (state.step === "adm_broadcast" && isAdmin(userId)) {
-        const fileId = msg.video.file_id;
-        const caption = msg.caption ?? void 0;
-        await executeBroadcast(bot, userId, "", { type: "video", fileId, caption });
-      }
     });
     bot.on("message", async (msg) => {
       if (msg.chat.type !== "private") return;
-      if (!msg.text) return;
       const chatId = msg.chat.id;
-      const userId = msg.from.id;
-      const text = msg.text;
-      const state = getState(userId);
+      const userId = msg.from?.id ?? chatId;
+      getOrCreateUser(userId, msg.from?.username, msg.from?.first_name);
       const user = getUser(userId);
       if (user?.banned) {
-        await bot.sendMessage(chatId, "\u{1F6AB} Tu cuenta ha sido suspendida. Contacta al administrador.");
+        await bot.sendMessage(chatId, "\u{1F6AB} Tu cuenta ha sido suspendida.");
         return;
       }
-      if (text === "\u{1F6D2} Ver Productos") {
-        await handleViewProducts(bot, chatId);
+      if (msg.photo) {
+        const state2 = getState(userId);
+        if (state2.step === "recharge_photo") {
+          await handleRechargePhoto(bot, msg);
+        } else if (state2.step === "adm_broadcast" && isAdmin(userId)) {
+          const fileId = msg.photo[msg.photo.length - 1].file_id;
+          await executeBroadcast(bot, userId, "", { type: "photo", fileId, caption: msg.caption });
+        }
         return;
       }
-      if (text === "\u{1F464} Mi Perfil") {
-        getOrCreateUser(chatId);
-        await handleProfile(bot, chatId);
+      if (msg.video) {
+        const state2 = getState(userId);
+        if (state2.step === "adm_broadcast" && isAdmin(userId)) {
+          await executeBroadcast(bot, userId, "", { type: "video", fileId: msg.video.file_id, caption: msg.caption });
+        }
         return;
       }
-      if (text === "\u{1F4E6} Mis Movimientos") {
-        await handleMovements(bot, chatId);
-        return;
-      }
-      if (text === "\u{1F4CB} Mis Compras") {
-        await handlePurchases(bot, chatId);
-        return;
-      }
-      if (text === "\u{1F4B3} Recargar Saldo") {
-        await handleRecharge(bot, chatId);
-        return;
-      }
-      if (text === "\u{1F465} Invitar Amigos") {
-        await handleReferral(bot, chatId, botUsername);
-        return;
-      }
-      if (text === "\u2699\uFE0F Men\xFA ADM" && isAdmin(userId)) {
-        await handleAdmMenu(bot, chatId);
-        return;
-      }
+      if (!msg.text) return;
+      const text = msg.text;
+      const state = getState(userId);
       switch (state.step) {
-        // ── Recarga ─────────────────────────────────────────────────────────
         case "recharge_amount":
           await handleRechargeAmount(bot, chatId, text);
-          break;
-        // ── Broadcast ────────────────────────────────────────────────────────
+          return;
         case "adm_broadcast":
           if (!isAdmin(userId)) break;
-          if (msg.photo && msg.photo.length > 0) {
-            const fileId = msg.photo[msg.photo.length - 1].file_id;
-            const caption = msg.caption ?? void 0;
-            await executeBroadcast(bot, userId, "", { type: "photo", fileId, caption });
-          } else {
-            await executeBroadcast(bot, userId, text);
+          if (text === "/cancelar") {
+            clearState(chatId);
+            await sendMainMenu(bot, chatId);
+            return;
           }
-          break;
-        // ── Ban ──────────────────────────────────────────────────────────────
+          await executeBroadcast(bot, userId, text);
+          return;
         case "adm_ban":
           if (!isAdmin(userId)) break;
           await executeBanToggle(bot, userId, text);
-          break;
-        // ── Creación de producto — wizard ─────────────────────────────────────
+          return;
+        // ── Wizard creación de producto ─────────────────────────────────────
         case "adm_add_product_name":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_product_category", productName: text });
-          await bot.sendMessage(chatId, `\u{1F4E6} Categor\xEDa para *${text}*:`, {
+          await bot.sendMessage(chatId, `\u{1F4E6} Producto: *${text}*
+
+Selecciona la categor\xEDa:`, {
             parse_mode: "Markdown",
             reply_markup: {
               inline_keyboard: [
-                [{ text: "\u{1F916} Android", callback_data: "adm_wizard_cat_android" }, { text: "\u{1F34E} iOS", callback_data: "adm_wizard_cat_ios" }, { text: "\u{1F5A5}\uFE0F PC", callback_data: "adm_wizard_cat_pc" }],
+                [
+                  { text: "\u{1F916} Android", callback_data: "adm_wcat_android" },
+                  { text: "\u{1F34E} iOS", callback_data: "adm_wcat_ios" },
+                  { text: "\u{1F5A5}\uFE0F PC", callback_data: "adm_wcat_pc" }
+                ],
                 [{ text: "\u274C Cancelar", callback_data: "adm_products" }]
               ]
             }
           });
-          break;
+          return;
         case "adm_wizard_dur_label":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_wizard_dur_price", productId: state.productId, productName: state.productName, label: text });
-          await bot.sendMessage(chatId, `\u{1F4B0} Precio en USD para *${text}* (ej: 5.99):`, {
+          await bot.sendMessage(chatId, `\u2705 *${text}*. Ahora el *precio en USD* (ej: 1.90):`, {
             parse_mode: "Markdown",
             reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: `adm_product_${state.productId}` }]] }
           });
-          break;
+          return;
         case "adm_wizard_dur_price": {
           if (!isAdmin(userId)) break;
           const price = parseFloat(text);
           if (isNaN(price) || price <= 0) {
-            await bot.sendMessage(chatId, "\u274C Precio inv\xE1lido. Ej: 5.99");
-            break;
+            await bot.sendMessage(chatId, "\u274C Precio inv\xE1lido. Ej: 1.90");
+            return;
           }
           const durationId = createDuration(state.productId, state.label, price);
           setState(chatId, { step: "adm_wizard_dur_stock", productId: state.productId, productName: state.productName, label: state.label, price, durationId });
-          await bot.sendMessage(chatId, `\u{1F4E6} \xBFCu\xE1ntas keys quieres agregar para *${state.label}*? (n\xFAmero):`, {
+          await bot.sendMessage(chatId, `\u2705 $${price.toFixed(2)} USD. \xBFCu\xE1ntas keys agregas ahora? (ej: 10)
+
+_Escribe 0 para agregar despu\xE9s._`, {
             parse_mode: "Markdown",
-            reply_markup: { inline_keyboard: [[{ text: "\u23ED\uFE0F Omitir (sin stock)", callback_data: `adm_wizard_skip_stock_${state.productId}` }]] }
+            reply_markup: { inline_keyboard: [[{ text: "\u23ED\uFE0F Sin stock por ahora", callback_data: `adm_wskip_${state.productId}` }]] }
           });
-          break;
+          return;
         }
         case "adm_wizard_dur_stock": {
           if (!isAdmin(userId)) break;
           const count = parseInt(text);
-          if (isNaN(count) || count <= 0) {
+          if (isNaN(count) || count < 0) {
             await bot.sendMessage(chatId, "\u274C N\xFAmero inv\xE1lido.");
-            break;
+            return;
           }
-          setState(chatId, { step: "adm_wizard_dur_keys", productId: state.productId, productName: state.productName, label: state.label, price: state.price, durationId: state.durationId, stockCount: count });
-          await bot.sendMessage(chatId, `\u{1F511} Env\xEDa *${count} keys*, una por l\xEDnea:`, {
-            parse_mode: "Markdown",
-            reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: `adm_product_${state.productId}` }]] }
-          });
-          break;
+          if (count === 0) {
+            clearState(chatId);
+            await showDurationAdded(chatId, state.productId, state.label, state.price, 0);
+          } else {
+            setState(chatId, { step: "adm_wizard_dur_keys", productId: state.productId, productName: state.productName, label: state.label, price: state.price, durationId: state.durationId, stockCount: count });
+            await bot.sendMessage(chatId, `\u2705 ${count} keys. Env\xEDalas ahora, *una por l\xEDnea*:`, {
+              parse_mode: "Markdown",
+              reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: `adm_product_${state.productId}` }]] }
+            });
+          }
+          return;
         }
         case "adm_wizard_dur_keys": {
           if (!isAdmin(userId)) break;
-          const keyLines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-          addKeys(state.productId, state.durationId, keyLines);
+          const keys = text.split("\n").map((k) => k.trim()).filter(Boolean);
+          if (keys.length === 0) {
+            await bot.sendMessage(chatId, "\u274C No se detectaron keys. Escr\xEDbelas una por l\xEDnea.");
+            return;
+          }
+          addKeys(state.productId, state.durationId, keys);
           clearState(chatId);
-          await showDurationAdded(chatId, state.productId, state.label, state.price, keyLines.length);
-          break;
+          await showDurationAdded(chatId, state.productId, state.label, state.price, keys.length);
+          return;
         }
-        // ── Edición de producto ───────────────────────────────────────────────
+        // ── Edición de producto ─────────────────────────────────────────────
         case "adm_rename_product":
           if (!isAdmin(userId)) break;
           renameProduct(state.productId, text);
           clearState(chatId);
           await bot.sendMessage(chatId, `\u2705 Producto renombrado a *${text}*.`, { parse_mode: "Markdown" });
           await handleAdmProductDetail(bot, chatId, state.productId);
-          break;
+          return;
         case "adm_add_duration_label":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_duration_price", productId: state.productId, label: text });
-          await bot.sendMessage(chatId, `\u{1F4B0} Precio en USD para *${text}* (ej: 5.99):`, {
+          await bot.sendMessage(chatId, `\u23F1\uFE0F *${text}*. Escribe el precio en USD (ej: 5.99):`, {
             parse_mode: "Markdown",
             reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: `adm_product_${state.productId}` }]] }
           });
-          break;
+          return;
         case "adm_add_duration_price": {
           if (!isAdmin(userId)) break;
           const price = parseFloat(text);
           if (isNaN(price) || price <= 0) {
             await bot.sendMessage(chatId, "\u274C Precio inv\xE1lido.");
-            break;
+            return;
           }
           createDuration(state.productId, state.label, price);
           clearState(chatId);
-          await bot.sendMessage(chatId, `\u2705 Duraci\xF3n *${state.label}* a $${price.toFixed(2)} USD creada.`, { parse_mode: "Markdown" });
+          await bot.sendMessage(chatId, `\u2705 Duraci\xF3n *${state.label}* - $${price.toFixed(2)} USD creada.`, { parse_mode: "Markdown" });
           await handleAdmProductDetail(bot, chatId, state.productId);
-          break;
-        }
-        case "adm_add_keys": {
-          if (!isAdmin(userId)) break;
-          const keyLines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-          addKeys(state.productId, state.durationId, keyLines);
-          clearState(chatId);
-          await bot.sendMessage(chatId, `\u2705 ${keyLines.length} keys agregadas.`);
-          await handleAdmProductDetail(bot, chatId, state.productId);
-          break;
+          return;
         }
         case "adm_edit_price": {
           if (!isAdmin(userId)) break;
           const price = parseFloat(text);
           if (isNaN(price) || price <= 0) {
             await bot.sendMessage(chatId, "\u274C Precio inv\xE1lido.");
-            break;
+            return;
           }
           updateDurationPrice(state.durationId, price);
           clearState(chatId);
           await bot.sendMessage(chatId, `\u2705 Precio actualizado a $${price.toFixed(2)} USD.`);
           await handleAdmProductDetail(bot, chatId, state.productId);
-          break;
+          return;
         }
-        // ── Métodos de pago — wizard ──────────────────────────────────────────
+        case "adm_add_keys": {
+          if (!isAdmin(userId)) break;
+          const keys = text.split("\n").map((k) => k.trim()).filter(Boolean);
+          if (keys.length === 0) {
+            await bot.sendMessage(chatId, "\u274C No se detectaron keys.");
+            return;
+          }
+          addKeys(state.productId, state.durationId, keys);
+          clearState(chatId);
+          await bot.sendMessage(chatId, `\u2705 Se agregaron *${keys.length}* keys.`, { parse_mode: "Markdown" });
+          await handleAdmProductDetail(bot, chatId, state.productId);
+          return;
+        }
+        // ── Métodos de pago ─────────────────────────────────────────────────
         case "adm_add_method_country":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_method_emoji", country: text });
-          await bot.sendMessage(chatId, `Emoji para ${text} (ej: \u{1F1F2}\u{1F1FD}):`);
-          break;
+          await bot.sendMessage(chatId, `\u{1F30D} Pa\xEDs: *${text}*
+
+Escribe el emoji del pa\xEDs (ej: \u{1F1F2}\u{1F1FD}):`, {
+            parse_mode: "Markdown",
+            reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: "adm_methods" }]] }
+          });
+          return;
         case "adm_add_method_emoji":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_method_bank", country: state.country, emoji: text });
           await bot.sendMessage(chatId, "Nombre del banco:");
-          break;
+          return;
         case "adm_add_method_bank":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_method_holder", country: state.country, emoji: state.emoji, bank: text });
           await bot.sendMessage(chatId, "Nombre del titular:");
-          break;
+          return;
         case "adm_add_method_holder":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_method_account", country: state.country, emoji: state.emoji, bank: state.bank, holder: text });
           await bot.sendMessage(chatId, "N\xFAmero de cuenta / CLABE:");
-          break;
+          return;
         case "adm_add_method_account":
           if (!isAdmin(userId)) break;
           setState(chatId, { step: "adm_add_method_minimum", country: state.country, emoji: state.emoji, bank: state.bank, holder: state.holder, account: text });
           await bot.sendMessage(chatId, "Monto m\xEDnimo en USD (ej: 2):");
-          break;
+          return;
         case "adm_add_method_minimum": {
           if (!isAdmin(userId)) break;
           const min = parseFloat(text);
           if (isNaN(min)) {
-            await bot.sendMessage(chatId, "\u274C Monto inv\xE1lido.");
-            break;
+            await bot.sendMessage(chatId, "\u274C N\xFAmero inv\xE1lido.");
+            return;
           }
           setState(chatId, { step: "adm_add_method_rate", country: state.country, emoji: state.emoji, bank: state.bank, holder: state.holder, account: state.account, minimum: min });
-          await bot.sendMessage(chatId, "Tasa de cambio (ej: 17.5 para 17.5 moneda local/USD):");
-          break;
+          await bot.sendMessage(chatId, "Tasa de cambio (ej: 20 para 20 moneda local/USD):");
+          return;
         }
         case "adm_add_method_rate": {
           if (!isAdmin(userId)) break;
           const rate = parseFloat(text);
           if (isNaN(rate)) {
-            await bot.sendMessage(chatId, "\u274C Tasa inv\xE1lida.");
-            break;
+            await bot.sendMessage(chatId, "\u274C N\xFAmero inv\xE1lido.");
+            return;
           }
           setState(chatId, { step: "adm_add_method_currency", country: state.country, emoji: state.emoji, bank: state.bank, holder: state.holder, account: state.account, minimum: state.minimum, rate });
-          await bot.sendMessage(chatId, "C\xF3digo de moneda (ej: MXN, ARS, USDT, VES):");
-          break;
+          await bot.sendMessage(chatId, "C\xF3digo de moneda (ej: MXN, ARS, USDT):");
+          return;
         }
         case "adm_add_method_currency": {
           if (!isAdmin(userId)) break;
-          createPaymentMethod({
-            country: state.country,
-            emoji: state.emoji,
-            bank: state.bank,
-            holder: state.holder,
-            account: state.account,
-            minimum: state.minimum,
-            rate: state.rate,
-            currency: text
-          });
+          createPaymentMethod({ country: state.country, emoji: state.emoji, bank: state.bank, holder: state.holder, account: state.account, minimum: state.minimum, rate: state.rate, currency: text });
           clearState(chatId);
-          await bot.sendMessage(chatId, `\u2705 M\xE9todo *${state.emoji} ${state.country}* agregado.`, { parse_mode: "Markdown" });
+          await bot.sendMessage(chatId, `\u2705 M\xE9todo *${state.emoji} ${state.country}* creado.`, { parse_mode: "Markdown" });
           await handleAdmMethods(bot, chatId);
-          break;
+          return;
         }
         case "adm_edit_method_field": {
           if (!isAdmin(userId)) break;
           const numFields = ["minimum", "rate"];
           const val = numFields.includes(state.field) ? parseFloat(text) : text;
+          if (numFields.includes(state.field) && isNaN(val)) {
+            await bot.sendMessage(chatId, "\u274C Debe ser un n\xFAmero.");
+            return;
+          }
           updatePaymentMethod(state.methodId, state.field, val);
           clearState(chatId);
-          await bot.sendMessage(chatId, `\u2705 Campo actualizado.`);
+          await bot.sendMessage(chatId, "\u2705 Campo actualizado.");
           await handleAdmMethodDetail(bot, chatId, state.methodId);
-          break;
+          return;
         }
+      }
+      switch (text) {
+        case "\u{1F6D2} Ver Productos":
+          await handleViewProducts(bot, chatId);
+          break;
+        case "\u{1F4CB} Mis Compras":
+          await handlePurchases(bot, chatId);
+          break;
+        case "\u{1F464} Mi Perfil":
+          await handleProfile(bot, chatId);
+          break;
+        case "\u{1F4E6} Mis Movimientos":
+          await handleMovements(bot, chatId);
+          break;
+        case "\u{1F4B3} Recargar Saldo":
+          await handleRecharge(bot, chatId);
+          break;
+        case "\u{1F465} Invitar Amigos":
+          await handleReferral(bot, chatId, botUsername);
+          break;
+        case "\u2699\uFE0F Men\xFA ADM":
+          if (isAdmin(userId)) await handleAdmMenu(bot, chatId);
+          break;
+        default:
+          if (!text.startsWith("/")) await sendMainMenu(bot, chatId);
       }
     });
     bot.on("callback_query", async (query) => {
-      const chatId = query.message?.chat.id;
       const userId = query.from.id;
+      const chatId = query.message?.chat.id;
       const data = query.data ?? "";
-      const isGroupChat = query.message?.chat.type === "group" || query.message?.chat.type === "supergroup";
+      const msgChatType = query.message?.chat.type;
+      const isGroup = msgChatType === "group" || msgChatType === "supergroup";
+      await bot.answerCallbackQuery(query.id).catch(() => {
+      });
       if (!chatId) return;
-      await bot.answerCallbackQuery(query.id);
-      if (isGroupChat) {
+      if (isGroup) {
         if (!isAdmin(userId)) return;
         if (data.startsWith("adm_approve_")) {
-          await handleAdmApprove(bot, userId, data.replace("adm_approve_", ""));
+          await handleAdmApprove(bot, userId, data.slice("adm_approve_".length));
           return;
         }
         if (data.startsWith("adm_reject_")) {
-          await handleAdmReject(bot, userId, data.replace("adm_reject_", ""));
+          await handleAdmReject(bot, userId, data.slice("adm_reject_".length));
           return;
         }
         return;
@@ -1612,32 +1649,37 @@ function startBot() {
         return;
       }
       if (data.startsWith("cat_")) {
-        await handleCategory(bot, chatId, data.replace("cat_", ""));
+        await handleCategory(bot, chatId, data.slice(4));
         return;
       }
       if (data.startsWith("product_")) {
-        await handleProductDetail(bot, chatId, parseInt(data.replace("product_", "")));
+        await handleProductDetail(bot, chatId, Number(data.slice(8)));
         return;
       }
       if (data.startsWith("buy_")) {
-        const [, pid, did] = data.split("_");
-        await handleBuy(bot, chatId, parseInt(pid), parseInt(did));
+        const rest = data.slice(4);
+        const sep = rest.indexOf("_");
+        await handleBuy(bot, chatId, Number(rest.slice(0, sep)), Number(rest.slice(sep + 1)));
         return;
       }
       if (data.startsWith("confirm_buy_")) {
-        const [, , pid, did] = data.split("_");
-        await handleConfirmBuy(bot, chatId, parseInt(pid), parseInt(did));
+        const rest = data.slice("confirm_buy_".length);
+        const sep = rest.indexOf("_");
+        await handleConfirmBuy(bot, chatId, Number(rest.slice(0, sep)), Number(rest.slice(sep + 1)));
         return;
       }
       if (data.startsWith("recharge_method_")) {
-        await handleRechargeMethod(bot, chatId, parseInt(data.replace("recharge_method_", "")));
+        await handleRechargeMethod(bot, chatId, Number(data.slice("recharge_method_".length)));
         return;
       }
       if (data.startsWith("recharge_sent_")) {
         await handleRechargeSent(bot, chatId);
         return;
       }
-      if (!isAdmin(userId)) return;
+      if (!isAdmin(userId)) {
+        if (data.startsWith("adm_")) await bot.sendMessage(chatId, "\u{1F6AB} No tienes permiso.");
+        return;
+      }
       if (data === "adm_menu") {
         await handleAdmMenu(bot, chatId);
         return;
@@ -1646,8 +1688,16 @@ function startBot() {
         await handleAdmProducts(bot, chatId);
         return;
       }
+      if (data === "adm_add_product") {
+        await startAddProduct(bot, chatId);
+        return;
+      }
       if (data === "adm_methods") {
         await handleAdmMethods(bot, chatId);
+        return;
+      }
+      if (data === "adm_add_method") {
+        await startAddMethod(bot, chatId);
         return;
       }
       if (data === "adm_recharges") {
@@ -1666,93 +1716,17 @@ function startBot() {
         await handleAdmBroadcast(bot, chatId);
         return;
       }
-      if (data === "adm_add_product") {
-        await startAddProduct(bot, chatId);
-        return;
-      }
-      if (data === "adm_add_method") {
-        await startAddMethod(bot, chatId);
-        return;
-      }
-      if (data.startsWith("adm_product_")) {
-        await handleAdmProductDetail(bot, chatId, parseInt(data.replace("adm_product_", "")));
-        return;
-      }
-      if (data.startsWith("adm_rename_")) {
-        await handleAdmRenameProduct(bot, chatId, parseInt(data.replace("adm_rename_", "")));
-        return;
-      }
-      if (data.startsWith("adm_delproduct_")) {
-        await handleAdmDeleteProduct(bot, chatId, parseInt(data.replace("adm_delproduct_", "")));
-        return;
-      }
-      if (data.startsWith("adm_newduration_")) {
-        await handleAdmNewDuration(bot, chatId, parseInt(data.replace("adm_newduration_", "")));
-        return;
-      }
-      if (data.startsWith("adm_delduration_menu_")) {
-        await handleAdmDelDurationMenu(bot, chatId, parseInt(data.replace("adm_delduration_menu_", "")));
-        return;
-      }
-      if (data.startsWith("adm_editprice_menu_")) {
-        await handleAdmEditPriceMenu(bot, chatId, parseInt(data.replace("adm_editprice_menu_", "")));
-        return;
-      }
-      if (data.startsWith("adm_addkeys_menu_")) {
-        await handleAdmAddKeysMenu(bot, chatId, parseInt(data.replace("adm_addkeys_menu_", "")));
-        return;
-      }
-      if (data.startsWith("adm_stock_menu_")) {
-        await handleAdmAddStockMenu(bot, chatId, parseInt(data.replace("adm_stock_menu_", "")));
-        return;
-      }
-      if (data.startsWith("adm_method_")) {
-        await handleAdmMethodDetail(bot, chatId, parseInt(data.replace("adm_method_", "")));
-        return;
-      }
-      if (data.startsWith("adm_delmethod_")) {
-        await handleAdmDeleteMethod(bot, chatId, parseInt(data.replace("adm_delmethod_", "")));
-        return;
-      }
-      if (data.startsWith("adm_approve_")) {
-        await handleAdmApprove(bot, chatId, data.replace("adm_approve_", ""));
-        return;
-      }
-      if (data.startsWith("adm_reject_")) {
-        await handleAdmReject(bot, chatId, data.replace("adm_reject_", ""));
-        return;
-      }
-      if (data.startsWith("adm_delduration_")) {
-        const parts = data.replace("adm_delduration_", "").split("_");
-        await handleAdmDelDuration(bot, chatId, parseInt(parts[0]), parseInt(parts[1]));
-        return;
-      }
-      if (data.startsWith("adm_editprice_")) {
-        const parts = data.replace("adm_editprice_", "").split("_");
-        await handleAdmEditPrice(bot, chatId, parseInt(parts[0]), parseInt(parts[1]));
-        return;
-      }
-      if (data.startsWith("adm_addkeys_")) {
-        const parts = data.replace("adm_addkeys_", "").split("_");
-        await handleAdmAddKeys(bot, chatId, parseInt(parts[0]), parseInt(parts[1]));
-        return;
-      }
-      if (data.startsWith("adm_mfield_")) {
-        const parts = data.replace("adm_mfield_", "").split("_");
-        await handleAdmMethodFieldEdit(bot, chatId, parseInt(parts[0]), parts[1]);
-        return;
-      }
-      if (data.startsWith("adm_wizard_cat_")) {
+      if (data.startsWith("adm_wcat_")) {
+        const category = data.slice("adm_wcat_".length);
         const state = getState(userId);
         if (state.step !== "adm_add_product_category") return;
-        const category = data.replace("adm_wizard_cat_", "");
         const productId = createProduct(state.productName, category);
         setState(chatId, { step: "adm_wizard_dur_label", productId, productName: state.productName });
         await bot.sendMessage(
           chatId,
-          `\u2705 Producto *${state.productName}* creado.
+          `\u2705 Producto *${state.productName}* creado en ${category}.
 
-Ahora escribe el nombre de la primera duraci\xF3n (ej: 1 Mes, 7 D\xEDas):`,
+Ahora escribe el nombre de la primera *duraci\xF3n* (ej: 1 Mes, 7 D\xEDas, Lifetime):`,
           {
             parse_mode: "Markdown",
             reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: `adm_product_${productId}` }]] }
@@ -1760,22 +1734,99 @@ Ahora escribe el nombre de la primera duraci\xF3n (ej: 1 Mes, 7 D\xEDas):`,
         );
         return;
       }
-      if (data.startsWith("adm_wizard_skip_stock_")) {
-        const productId = parseInt(data.replace("adm_wizard_skip_stock_", ""));
+      if (data.startsWith("adm_wskip_")) {
+        const productId = Number(data.slice("adm_wskip_".length));
         const state = getState(userId);
         clearState(chatId);
         if (state.step === "adm_wizard_dur_stock") {
           await showDurationAdded(chatId, productId, state.label, state.price, 0);
+        } else {
+          await handleAdmProductDetail(bot, chatId, productId);
         }
         return;
       }
       if (data.startsWith("adm_wizard_newdur_")) {
-        const productId = parseInt(data.replace("adm_wizard_newdur_", ""));
-        const state2 = getState(userId);
-        setState(chatId, { step: "adm_wizard_dur_label", productId, productName: state2.productName ?? "" });
+        const productId = Number(data.slice("adm_wizard_newdur_".length));
+        const product = getProduct(productId);
+        if (!product) return;
+        setState(chatId, { step: "adm_wizard_dur_label", productId, productName: product.name });
         await bot.sendMessage(chatId, "\u2795 Escribe el nombre de la nueva duraci\xF3n (ej: 3 Meses):", {
           reply_markup: { inline_keyboard: [[{ text: "\u274C Cancelar", callback_data: `adm_product_${productId}` }]] }
         });
+        return;
+      }
+      if (data.startsWith("adm_product_")) {
+        await handleAdmProductDetail(bot, chatId, Number(data.slice("adm_product_".length)));
+        return;
+      }
+      if (data.startsWith("adm_rename_")) {
+        await handleAdmRenameProduct(bot, chatId, Number(data.slice("adm_rename_".length)));
+        return;
+      }
+      if (data.startsWith("adm_delproduct_")) {
+        await handleAdmDeleteProduct(bot, chatId, Number(data.slice("adm_delproduct_".length)));
+        return;
+      }
+      if (data.startsWith("adm_newduration_")) {
+        await handleAdmNewDuration(bot, chatId, Number(data.slice("adm_newduration_".length)));
+        return;
+      }
+      if (data.startsWith("adm_stock_menu_")) {
+        await handleAdmAddStockMenu(bot, chatId, Number(data.slice("adm_stock_menu_".length)));
+        return;
+      }
+      if (data.startsWith("adm_delduration_menu_")) {
+        await handleAdmDelDurationMenu(bot, chatId, Number(data.slice("adm_delduration_menu_".length)));
+        return;
+      }
+      if (data.startsWith("adm_delduration_")) {
+        const rest = data.slice("adm_delduration_".length);
+        const sep = rest.indexOf("_");
+        await handleAdmDelDuration(bot, chatId, Number(rest.slice(0, sep)), Number(rest.slice(sep + 1)));
+        return;
+      }
+      if (data.startsWith("adm_editprice_menu_")) {
+        await handleAdmEditPriceMenu(bot, chatId, Number(data.slice("adm_editprice_menu_".length)));
+        return;
+      }
+      if (data.startsWith("adm_editprice_")) {
+        const rest = data.slice("adm_editprice_".length);
+        const sep = rest.indexOf("_");
+        await handleAdmEditPrice(bot, chatId, Number(rest.slice(0, sep)), Number(rest.slice(sep + 1)));
+        return;
+      }
+      if (data.startsWith("adm_addkeys_menu_")) {
+        await handleAdmAddKeysMenu(bot, chatId, Number(data.slice("adm_addkeys_menu_".length)));
+        return;
+      }
+      if (data.startsWith("adm_addkeys_")) {
+        const rest = data.slice("adm_addkeys_".length);
+        const sep = rest.indexOf("_");
+        await handleAdmAddKeys(bot, chatId, Number(rest.slice(0, sep)), Number(rest.slice(sep + 1)));
+        return;
+      }
+      if (data.startsWith("adm_delmethod_")) {
+        await handleAdmDeleteMethod(bot, chatId, Number(data.slice("adm_delmethod_".length)));
+        return;
+      }
+      if (data.startsWith("adm_mfield_")) {
+        const rest = data.slice("adm_mfield_".length);
+        const sep = rest.indexOf("_");
+        const methodId = Number(rest.slice(0, sep));
+        const fieldName = rest.slice(sep + 1);
+        await handleAdmMethodFieldEdit(bot, chatId, methodId, fieldName);
+        return;
+      }
+      if (data.startsWith("adm_method_")) {
+        await handleAdmMethodDetail(bot, chatId, Number(data.slice("adm_method_".length)));
+        return;
+      }
+      if (data.startsWith("adm_approve_")) {
+        await handleAdmApprove(bot, chatId, data.slice("adm_approve_".length));
+        return;
+      }
+      if (data.startsWith("adm_reject_")) {
+        await handleAdmReject(bot, chatId, data.slice("adm_reject_".length));
         return;
       }
     });
